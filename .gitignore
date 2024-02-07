@@ -1,0 +1,11 @@
+dinov2_practice.ipynb
+understand.ipynb
+vit_scratch.ipynb
+wandb-practice.ipynb
+map_clsloc.txt
+data/
+datasets/
+features_mae_large/
+MNIST/
+models/
+wandb/

@@ -9,3 +9,4 @@ features_mae_large/
 MNIST/
 models/
 wandb/
+__pycache__/

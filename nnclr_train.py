@@ -11,15 +11,15 @@ from wandb_logger import *
 
 # Hyperparameters
 EPOCHS = 10
-BATCH_SIZE = 1024
-LR = 1e-4
+BATCH_SIZE = 4096
+LR = 0.4 # 0.3
 TEMPERATURE = 0.15
-QUEUE_SIZE = 65536
-WEIGHT_DECAY = 1e-5
+QUEUE_SIZE = 98304
+WEIGHT_DECAY = 1e-6
 PROJECT_HIDDEN_DIM = 2048
 PROJECT_OUTPUT_DIM = 256
-PREDICT_HIDDEN_DIM = 4096
-PREDICT_OUTPUT_DIM = 256
+PREDICTION_HIDDEN_DIM = 4096
+PREDICTION_OUTPUT_DIM = 256
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class MAEDataset(torch.utils.data.Dataset):
@@ -40,8 +40,8 @@ class NNCLRHead(nn.Module):
     def __init__(self, 
                  project_hidden_dim=PROJECT_HIDDEN_DIM, 
                  project_output_dim=PROJECT_OUTPUT_DIM, 
-                 predict_hidden_dim=PREDICT_HIDDEN_DIM, 
-                 predict_output_dim=PREDICT_OUTPUT_DIM):
+                 predict_hidden_dim=PREDICTION_HIDDEN_DIM, 
+                 predict_output_dim=PREDICTION_OUTPUT_DIM):
         super().__init__()
 
         self.projection_head = NNCLRProjectionHead(1024, # input_dim as provided by supervisors
@@ -71,8 +71,8 @@ def train(view1_path, view2_path):
                                  "view2": view2,
                                  "projection_hidden_dim": PROJECT_HIDDEN_DIM,
                                  "projection_output_dim": PROJECT_OUTPUT_DIM,
-                                 "prediction_hidden_dim": PREDICT_HIDDEN_DIM,
-                                 "prediction_output_dim": PREDICT_OUTPUT_DIM,
+                                 "prediction_hidden_dim": PREDICTION_HIDDEN_DIM,
+                                 "prediction_output_dim": PREDICTION_OUTPUT_DIM,
                                  "epochs": EPOCHS, 
                                  "batch_size": BATCH_SIZE, 
                                  "lr": LR, 
@@ -92,14 +92,14 @@ def train(view1_path, view2_path):
 
     # create the criterion and optimizer
     criterion = NTXentLoss(temperature=TEMPERATURE, 
-                           memory_bank_size=(QUEUE_SIZE, PREDICT_OUTPUT_DIM)
+                           memory_bank_size=(QUEUE_SIZE, PREDICTION_OUTPUT_DIM)
                            )
     optimizer = torch.optim.SGD(model.parameters(), 
                                 lr=LR, 
                                 weight_decay=WEIGHT_DECAY)
     
     # create the memory bank
-    memory_bank = NNMemoryBankModule(size=(QUEUE_SIZE, PREDICT_OUTPUT_DIM))
+    memory_bank = NNMemoryBankModule(size=(QUEUE_SIZE, PREDICTION_OUTPUT_DIM))
     memory_bank = memory_bank.to(DEVICE)
 
     best_loss = math.inf
@@ -126,7 +126,9 @@ def train(view1_path, view2_path):
         # save the model if the loss is the best so far
         if avg_loss < best_loss:
             best_loss = avg_loss
-            torch.save(model.state_dict(), f"best_model_{view1}_{view2}.pth")
+            view1_name = view1.split(".")[0]
+            view2_name = view2.split(".")[0]
+            torch.save(model.state_dict(), f"best_model_{view1_name}_{view2_name}.pth")
 
     torch.cuda.empty_cache()
     finish_wandb(wandb)

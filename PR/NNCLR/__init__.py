@@ -1,1 +1,2 @@
-from .dataset import MAEDataset
+from .mae_dataset import MAEDataset
+from .model import NNCLRHead

@@ -66,7 +66,7 @@ def train(tags, random_views=True, reduce_factor=1.0):
 
         for epoch in range(config.epochs):
             total_loss = 0
-            for x0, x1 in dataloader:
+            for x0, x1, _ in dataloader:
                 x0, x1 = x0.to(config.device), x1.to(config.device)
                 _, z0, p0 = model(x0)
                 _, z1, p1 = model(x1)

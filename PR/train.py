@@ -87,11 +87,12 @@ def train(tags, random_views=True, reduce_factor=1.0):
             
             avg_loss = total_loss / len(dataloader)
             wandb.log({"loss": avg_loss}, step=epoch)
-                
+
+            red_fac_name = str(config.reduce_factor).replace(".", "_")    
             torch.save(
                 model.state_dict(),
                 os.path.join(MODEL_PATH, 
-                             f"{view1_name}_{view2_name}_{epoch}_{config.reduce_factor}.pth"))
+                             f"{view1_name}_{view2_name}_{epoch}_{red_fac_name}.pth"))
         torch.cuda.empty_cache()
         wandb.finish()
 

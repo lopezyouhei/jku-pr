@@ -31,4 +31,4 @@ class MAEDataset(Dataset):
         return self.length
 
     def __getitem__(self, idx):
-        return self.view1[idx], self.view2[idx]
+        return self.view1[idx], self.view2[idx], self.labels[idx]

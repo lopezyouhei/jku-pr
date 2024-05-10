@@ -14,6 +14,8 @@ WORKING_DIR = os.getcwd()
 DATA_PATH = os.path.join(WORKING_DIR, "features_mae_large")
 MODEL_PATH = os.path.join(WORKING_DIR, "models")
 
+labels_path = os.path.join(DATA_PATH, "train-labels.th")
+
 def train(tags, random_views=True, reduce_factor=1.0):
     with wandb.init(project="NNCLR", tags=tags) as run:
         config = wandb.config
@@ -28,17 +30,24 @@ def train(tags, random_views=True, reduce_factor=1.0):
         config.prediction_hidden_dim = config.get("prediction_hidden_dim", PREDICTION_HIDDEN_DIM)
         config.prediction_output_dim = config.get("prediction_output_dim", PREDICTION_OUTPUT_DIM)
         config.random_views = config.get("random_views", random_views)
+        config.reduce_factor = config.get("reduce_factor", reduce_factor)
         config.device = config.get("device", "cuda" if torch.cuda.is_available() else "cpu")
 
-        # create a dataset from the view1 and view2 paths
+        # create a dataset
         # TODO: write function which takes boolean to generate random pairs or return a given pair
         dataset = None
-        if config.random_views:
-            view1_path, view2_path = generate_pair(config.random_views, 
-                                                   DATA_PATH, 
-                                                   MODEL_PATH)
-            dataset = MAEDataset(view1_path, view2_path)
-        # TODO: implement dataset reduction
+        view1_path, view2_path = generate_pair(config.random_views, 
+                                               DATA_PATH, 
+                                               MODEL_PATH)
+        
+        view1_name = view1_path.split("/")[-1].split(".")[0]
+        view2_name = view2_path.split("/")[-1].split(".")[0]
+
+        dataset = MAEDataset(view1_path, 
+                             view2_path,
+                             labels_path,
+                             config.reduce_factor)
+
         # create the dataloader
         dataloader = DataLoader(dataset, 
                                 batch_size=config.batch_size, 
@@ -62,8 +71,6 @@ def train(tags, random_views=True, reduce_factor=1.0):
                                     lr=config.lr,
                                     weight_decay=config.weight_decay)
 
-        best_loss = math.inf
-
         for epoch in range(config.epochs):
             total_loss = 0
             for x0, x1, _ in dataloader:
@@ -77,15 +84,13 @@ def train(tags, random_views=True, reduce_factor=1.0):
                 loss.backward()
                 optimizer.step()
                 optimizer.zero_grad()
+            
             avg_loss = total_loss / len(dataloader)
             wandb.log({"loss": avg_loss}, step=epoch)
-
-            if avg_loss < best_loss:
-                best_loss = avg_loss
-                view1_name = view1_path.split("/")[-1].split(".")[0]
-                view2_name = view2_path.split("/")[-1].split(".")[0]
-                torch.save(model.state_dict(), 
-                           os.path.join(MODEL_PATH, 
-                                        f"best_model_{view1_name}_{view2_name}.pth"))
+                
+            torch.save(
+                model.state_dict(),
+                os.path.join(MODEL_PATH, 
+                             f"{view1_name}_{view2_name}_{epoch}_{config.reduce_factor}.pth"))
         torch.cuda.empty_cache()
         wandb.finish()

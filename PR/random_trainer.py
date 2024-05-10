@@ -1,7 +1,7 @@
 import os
 import random
 from itertools import combinations
-from nnclr_train import train
+from PR.nnclr_train import train
 
 data_path = os.path.join(os.getcwd(), "features_mae_large")
 
@@ -21,5 +21,3 @@ def train_random_pairs(num_pairs=15):
         print(f"Training pair {i+1}/{num_pairs}: {pair}")
         train(pair[0], pair[1])
 
-if __name__ == "__main__":
-    train_random_pairs()

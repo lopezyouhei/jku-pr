@@ -7,7 +7,7 @@ from lightly.models.modules import (NNCLRProjectionHead,
                                     NNCLRPredictionHead,
                                     NNMemoryBankModule)
 
-from wandb_logger import *
+from PR.wandb_logger import *
 
 # Hyperparameters
 EPOCHS = 10
@@ -79,7 +79,6 @@ def train(view1_path, view2_path):
                                  "temperature": TEMPERATURE, 
                                  "queue_size": QUEUE_SIZE, 
                                  "weight_decay": WEIGHT_DECAY,
-                                  
                                  }
                                  )
     

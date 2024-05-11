@@ -22,7 +22,7 @@ class NNCLRHead(nn.Module):
             self.capture_activations
             )
     
-    def capture_activations(self, output):
+    def capture_activations(self, module, input, output):
         self.proj_activation = output
 
     def forward(self, x):

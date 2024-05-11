@@ -18,7 +18,7 @@ labels_path = os.path.join(DATA_PATH, "train-labels.th")
 
 def train(tags, random_views=True, reduce_factor=1.0):
     with wandb.init(project="NNCLR", tags=tags) as run:
-        config = wandb.config
+        config = run.config
 
         config.random_views = config.get("random_views", random_views)
         config.reduce_factor = config.get("reduce_factor", reduce_factor)
@@ -28,8 +28,8 @@ def train(tags, random_views=True, reduce_factor=1.0):
         config.temperature = config.get("temperature", TEMPERATURE)
         config.queue_size = config.get("queue_size", QUEUE_SIZE)
         config.weight_decay = config.get("weight_decay", WEIGHT_DECAY)
-        config.project_hidden_dim = config.get("project_hidden_dim", PROJECT_HIDDEN_DIM)
-        config.project_output_dim = config.get("project_output_dim", PROJECT_OUTPUT_DIM)
+        config.projection_hidden_dim = config.get("project_hidden_dim", PROJECT_HIDDEN_DIM)
+        config.projection_output_dim = config.get("project_output_dim", PROJECT_OUTPUT_DIM)
         config.prediction_hidden_dim = config.get("prediction_hidden_dim", PREDICTION_HIDDEN_DIM)
         config.prediction_output_dim = config.get("prediction_output_dim", PREDICTION_OUTPUT_DIM)
         config.device = config.get("device", "cuda" if torch.cuda.is_available() else "cpu")
@@ -43,6 +43,9 @@ def train(tags, random_views=True, reduce_factor=1.0):
         view1_name = view1_path.split("/")[-1].split(".")[0]
         view2_name = view2_path.split("/")[-1].split(".")[0]
 
+        config.view1 = config.get("view1", view1_name)
+        config.view2 = config.get("view2", view2_name)
+
         dataset = MAEDataset(view1_path, 
                              view2_path,
                              labels_path,
@@ -54,8 +57,8 @@ def train(tags, random_views=True, reduce_factor=1.0):
                                 shuffle=True)
 
         # create the NNCLR model
-        model = NNCLRHead(config.project_hidden_dim, 
-                          config.project_output_dim, 
+        model = NNCLRHead(config.projection_hidden_dim, 
+                          config.projection_output_dim, 
                           config.prediction_hidden_dim, 
                           config.prediction_output_dim).to(config.device)
         
@@ -88,7 +91,7 @@ def train(tags, random_views=True, reduce_factor=1.0):
             avg_loss = total_loss / len(dataloader)
             wandb.log({"loss": avg_loss}, step=epoch)
 
-            red_fac_name = str(config.reduce_factor).replace(".", "_")    
+            red_fac_name = str(config.reduce_factor).replace(".", "-")    
             torch.save(
                 model.state_dict(),
                 os.path.join(MODEL_PATH, 

@@ -1,0 +1,18 @@
+method: bayes
+metric:
+  goal: minimize
+  name: loss
+parameters:
+  batch_size:
+    values: [256, 512, 1024, 2048, 4096, 8192]
+  lr:
+    distribution: uniform
+    max: 0.4
+    min: 1e-5
+  queue_size:
+    values: [8192, 16384, 32768, 65536, 98304]
+  temperature:
+    values: [0.1, 0.15, 0.2]
+  weight_decay:
+    values: [1e-6, 1e-5]
+program: PR/train.py

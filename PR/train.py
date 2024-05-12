@@ -16,18 +16,19 @@ MODEL_PATH = os.path.join(WORKING_DIR, "models")
 
 labels_path = os.path.join(DATA_PATH, "train-labels.th")
 
-def train(tags, random_views=True, reduce_factor=1.0):
-    with wandb.init(project="NNCLR", tags=tags) as run:
+def train(user_tags, args, random_views=True):
+    with wandb.init(project="NNCLR", tags=user_tags) as run:
         config = run.config
 
+        config.batch_size = args.batch_size
+        config.lr = args.lr
+        config.temperature = args.temperature
+        config.queue_size = args.queue_size
+        config.weight_decay = args.weight_decay
+        config.reduce_factor = args.reduce_factor
+
         config.random_views = config.get("random_views", random_views)
-        config.reduce_factor = config.get("reduce_factor", reduce_factor)
         config.epochs = config.get("epochs", round(EPOCHS/config.reduce_factor))
-        config.batch_size = config.get("batch_size", BATCH_SIZE)
-        config.lr = config.get("lr", LR)
-        config.temperature = config.get("temperature", TEMPERATURE)
-        config.queue_size = config.get("queue_size", QUEUE_SIZE)
-        config.weight_decay = config.get("weight_decay", WEIGHT_DECAY)
         config.projection_hidden_dim = config.get("project_hidden_dim", PROJECT_HIDDEN_DIM)
         config.projection_output_dim = config.get("project_output_dim", PROJECT_OUTPUT_DIM)
         config.prediction_hidden_dim = config.get("prediction_hidden_dim", PREDICTION_HIDDEN_DIM)
@@ -100,11 +101,17 @@ def train(tags, random_views=True, reduce_factor=1.0):
         wandb.finish()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run training multiple times")
+    parser = argparse.ArgumentParser(description="Training Configuration")
     parser.add_argument("--runs", type=int, default=1, help="Number of times to run training")
+    parser.add_argument("--batch_size", type=int, default=BATCH_SIZE, help="Batch size")
+    parser.add_argument("--lr", type=float, default=LR, help="Learning rate")
+    parser.add_argument("--queue_size", type=int, default=QUEUE_SIZE, help="Queue size for memory bank")
+    parser.add_argument("--temperature", type=float, default=TEMPERATURE, help="Temperature for NTXent loss")
+    parser.add_argument("--weight_decay", type=float, default=WEIGHT_DECAY, help="Weight decay")
+    parser.add_argument("--reduce_factor", type=float, default=1.0, help="Reduce factor for class number reduction")
     args = parser.parse_args()
 
-    tags = ["baseline"]
+    tags = ["baseline_HPO"]
 
     for _ in range(args.runs):
-        train(tags, random_views=True, reduce_factor=1.0)
+        train(tags, args, random_views=False)

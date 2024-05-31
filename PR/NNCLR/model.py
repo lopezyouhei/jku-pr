@@ -2,12 +2,22 @@ from lightly.loss import NTXentLoss
 from lightly.models.modules import (NNCLRProjectionHead,
                                     NNCLRPredictionHead,
                                     NNMemoryBankModule)
-
+import os
+import sys
 import torch.nn as nn
 
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(parent_dir)
+from config.model_config import PROJECT_HIDDEN_DIM, PROJECT_OUTPUT_DIM, PREDICTION_HIDDEN_DIM, PREDICTION_OUTPUT_DIM
+
+
+
 class NNCLRHead(nn.Module):
-    def __init__(self, project_hidden_dim, project_output_dim, 
-                 predict_hidden_dim, predict_output_dim):
+    def __init__(self, 
+                 project_hidden_dim=PROJECT_HIDDEN_DIM, 
+                 project_output_dim=PROJECT_OUTPUT_DIM, 
+                 predict_hidden_dim=PREDICTION_HIDDEN_DIM, 
+                 predict_output_dim=PREDICTION_OUTPUT_DIM):
         super().__init__()
 
         self.projection_head = NNCLRProjectionHead(1024, # input_dim 

@@ -17,7 +17,7 @@ MODEL_PATH = os.path.join(WORKING_DIR, "models")
 labels_path = os.path.join(DATA_PATH, "train-labels.th")
 
 def train(user_tags, args, random_views=True):
-    with wandb.init(project="NNCLR", tags=user_tags) as run:
+    with wandb.init(project="PR-NNCLR", tags=user_tags) as run:
         config = run.config
 
         config.batch_size = args.batch_size
@@ -33,7 +33,8 @@ def train(user_tags, args, random_views=True):
         config.projection_output_dim = config.get("project_output_dim", PROJECT_OUTPUT_DIM)
         config.prediction_hidden_dim = config.get("prediction_hidden_dim", PREDICTION_HIDDEN_DIM)
         config.prediction_output_dim = config.get("prediction_output_dim", PREDICTION_OUTPUT_DIM)
-        config.device = config.get("device", "cuda" if torch.cuda.is_available() else "cpu")
+        config.device = config.get("device", "cuda:0" if torch.cuda.is_available() else "cpu")
+        config.device_name = config.get("device_name", torch.cuda.get_device_name("cuda:0") if torch.cuda.is_available() else "cpu")
 
         # create a dataset
         dataset = None
@@ -66,11 +67,11 @@ def train(user_tags, args, random_views=True):
         # create the memory bank, criterion and optimizer
         memory_bank = NNMemoryBankModule(size=(
             config.queue_size, 
-            config.prediction_output_dim
+            config.projection_output_dim
             )).to(config.device)
         criterion = NTXentLoss(temperature=config.temperature, 
                                memory_bank_size=(config.queue_size, 
-                                                 config.prediction_output_dim))
+                                                 config.projection_output_dim))
         optimizer = torch.optim.SGD(model.parameters(),
                                     lr=config.lr,
                                     weight_decay=config.weight_decay)
@@ -96,7 +97,7 @@ def train(user_tags, args, random_views=True):
             torch.save(
                 model.state_dict(),
                 os.path.join(MODEL_PATH, 
-                             f"{view1_name}_{view2_name}_{epoch}_{red_fac_name}.pth"))
+                             f"{view1_name}_{view2_name}_{epoch}_{red_fac_name}_{user_tags[0]}.pth"))
         torch.cuda.empty_cache()
         wandb.finish()
 
@@ -111,7 +112,7 @@ if __name__ == "__main__":
     parser.add_argument("--reduce_factor", type=float, default=1.0, help="Reduce factor for class number reduction")
     args = parser.parse_args()
 
-    tags = ["baseline_HPO"]
+    tags = ["baseline"]
 
     for _ in range(args.runs):
         train(tags, args, random_views=False)

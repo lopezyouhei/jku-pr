@@ -1,11 +1,6 @@
 import random
 import os
 import torch
-import yaml
-
-def load_yaml(file_path):
-    with open(file_path, 'r') as file:
-        return yaml.safe_load(file)
     
 def generate_pair(random_bool, data_path, model_path):
     views_list = []

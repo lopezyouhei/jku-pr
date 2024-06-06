@@ -1,6 +1,11 @@
 import nltk
 nltk.download('wordnet')
 from nltk.corpus import wordnet as wn
+import yaml
+
+def load_yaml(file_path):
+    with open(file_path, 'r') as file:
+        return yaml.safe_load(file)
 
 # check if synset category exists
 def check_synset_exists(synset_name):

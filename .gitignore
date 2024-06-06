@@ -10,3 +10,4 @@ MNIST/
 models/
 wandb/
 __pycache__/
+test.ipynb

@@ -78,7 +78,7 @@ def main(device, categories):
         plot_umap(p_umap, category_labels, category_names, categories, model_name, 'p')
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="UMAP Embedding")
     parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu', help='Device')
     parser.add_argument('--categories', type=str, default='main_5_categories', help='Categories from class_group.py')
     args = parser.parse_args()

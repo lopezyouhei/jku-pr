@@ -1,0 +1,12 @@
+model,accuracy
+baseline,0.3196
+mae-ct,0.20604
+reduced-100,0.33214
+reduced-200,0.3376
+reduced-300,0.34802
+reduced-400,0.35508
+reduced-500,0.37246
+reduced-600,0.37194
+reduced-700,0.3911
+reduced-800,0.37986
+reduced-900,0.34858

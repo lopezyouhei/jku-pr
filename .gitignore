@@ -11,3 +11,4 @@ models/
 wandb/
 __pycache__/
 test.ipynb
+results/knn_score.py

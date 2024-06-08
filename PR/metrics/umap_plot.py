@@ -7,7 +7,7 @@ from typing import List
 project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 results_path = os.path.join(os.path.dirname(project_dir), "results")
 
-def plot_umap(embedding, 
+def plot_umap(embedding : np.ndarray, 
               category_labels : torch.Tensor,
               category_names : List, 
               synset_category_name : str, 
@@ -22,7 +22,7 @@ def plot_umap(embedding,
         ax.scatter(embedding[:, 0][category_labels == label], 
                    embedding[:, 1][category_labels == label], 
                    color=colors(i), 
-                   label=f'Label {category_names[label]}', 
+                   label=f'{category_names[int(label)].capitalize()}', 
                    s = 5)
 
     ax.legend(title="Labels")

@@ -12,3 +12,6 @@ wandb/
 __pycache__/
 test.ipynb
 results/knn_score.py
+practical_work.ipynb
+test.ipynb
+vitmae-nnclr.ipynb

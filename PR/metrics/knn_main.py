@@ -71,7 +71,7 @@ def main(n_neighbors, device):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="k-NN Classification")
-    parser.add_argument("--n_neighbors", type=int, default=9, help="Number of neighbors for k-NN")
+    parser.add_argument("--n_neighbors", type=int, default=13, help="Number of neighbors for k-NN")
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device")
     args = parser.parse_args()
 

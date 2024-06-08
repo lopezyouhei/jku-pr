@@ -15,3 +15,5 @@ results/knn_score.py
 practical_work.ipynb
 test.ipynb
 vitmae-nnclr.ipynb
+nnclr_train.py
+random_trainer.py

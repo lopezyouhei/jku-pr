@@ -1,0 +1,2 @@
+model,l_accuracy,z_accuracy,p_accuracy,l_silhouette_score,z_silhouette_score,p_silhouette_score
+mae-ct,0.44066666666666665,0.3362222222222222,0.372,0.09194367,0.12741025,0.24181597

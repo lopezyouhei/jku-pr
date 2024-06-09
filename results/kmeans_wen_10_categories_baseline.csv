@@ -1,0 +1,2 @@
+model,l_accuracy,z_accuracy,p_accuracy,l_silhouette_score,z_silhouette_score,p_silhouette_score
+baseline,0.48674074074074075,0.5402222222222223,0.5422222222222223,0.15422346,0.3439069,0.4151342

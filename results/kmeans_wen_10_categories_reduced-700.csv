@@ -1,0 +1,2 @@
+model,l_accuracy,z_accuracy,p_accuracy,l_silhouette_score,z_silhouette_score,p_silhouette_score
+reduced-700,0.5125185185185185,0.6488888888888888,0.6089629629629629,0.13356277,0.35034063,0.44468367

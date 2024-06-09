@@ -124,13 +124,22 @@ def main(device, categories):
             # plot confusion matrix
             plot_confusion_matrix(confusion_matrix(test_labels, l_aligned_labels), 
                                 category_names, 
-                                f"Confusion Matrix for {model_name} using l embeddings")
+                                f"Confusion Matrix for {model_name} using l embeddings",
+                                "kmeans",
+                                categories,
+                                model_name)
             plot_confusion_matrix(confusion_matrix(test_labels, z_aligned_labels), 
                                 category_names, 
-                                f"Confusion Matrix for {model_name} using z embeddings")
+                                f"Confusion Matrix for {model_name} using z embeddings",
+                                "kmeans",
+                                categories,
+                                model_name)
             plot_confusion_matrix(confusion_matrix(test_labels, p_aligned_labels), 
                                 category_names, 
-                                f"Confusion Matrix for {model_name} using p embeddings")
+                                f"Confusion Matrix for {model_name} using p embeddings",
+                                "kmeans",
+                                categories,
+                                model_name)
 
         # calculate accuracy
         l_accuracy = accuracy_score(test_labels, l_aligned_labels)

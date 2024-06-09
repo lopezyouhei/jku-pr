@@ -10,7 +10,8 @@ def plot_confusion_matrix(conf_mat,
                           title,
                           algorithm_name, 
                           category_name, 
-                          model_name, 
+                          model_name,
+                          layer_name,
                           file_path=results_path):
     plt.figure(figsize=(10, 10))
     sns.heatmap(conf_mat, 
@@ -24,5 +25,5 @@ def plot_confusion_matrix(conf_mat,
     plt.xlabel('Predicted')
     plt.title(title)
     plt.savefig(os.path.join(file_path, 
-                             f"{algorithm_name}_confusion_matrix_{category_name}_{model_name}.png"))
+                             f"{algorithm_name}_confusion_matrix_{category_name}_{model_name}_{layer_name}.png"))
     plt.close()

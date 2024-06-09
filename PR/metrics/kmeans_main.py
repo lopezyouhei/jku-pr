@@ -1,3 +1,7 @@
+# USE IF SUFFICIENT MEMORY IS AVAILABLE
+# DUE TO MY SETUP ONLY SILHOUETTE SCORES ARE CALCULATED HERE
+# CHECK kmeans_faiss_main.py FOR FULL IMPLEMENTATION
+
 import argparse
 import numpy as np
 import os
@@ -53,17 +57,27 @@ def main(device):
         normalized_z_embeddings = normalize(z_embeddings.numpy(), norm='l2', axis=1)
         normalized_p_embeddings = normalize(p_embeddings.numpy(), norm='l2', axis=1)
 
-        # calculate cosine similarity
-        l_similarity = cosine_similarity(normalized_l_embeddings)
-        z_similarity = cosine_similarity(normalized_z_embeddings)
-        p_similarity = cosine_similarity(normalized_p_embeddings)
+        # # calculate cosine similarity
+        # l_similarity = cosine_similarity(normalized_l_embeddings)
+        # z_similarity = cosine_similarity(normalized_z_embeddings)
+        # p_similarity = cosine_similarity(normalized_p_embeddings)
 
-        # apply KMeans clustering on cosine similarity
-        # kmeans = KMeans(n_clusters=100, random_state=42) # leads to memory error
-        kmeans = MiniBatchKMeans(n_clusters=100, random_state=42, batch_size=1024)
-        l_cluster_labels = kmeans.fit_predict(l_similarity)
-        z_cluster_labels = kmeans.fit_predict(z_similarity)
-        p_cluster_labels = kmeans.fit_predict(p_similarity)
+        # # apply KMeans clustering on cosine similarity
+        # # kmeans = KMeans(n_clusters=100, random_state=42) # leads to memory error
+        # kmeans = MiniBatchKMeans(n_clusters=100, random_state=42, batch_size=1024)
+        # l_cluster_labels = kmeans.fit_predict(l_similarity)
+        # z_cluster_labels = kmeans.fit_predict(z_similarity)
+        # p_cluster_labels = kmeans.fit_predict(p_similarity)
+
+        from sklearn.cluster import AgglomerativeClustering
+
+        # Initialize AgglomerativeClustering using cosine similarity
+        clustering = AgglomerativeClustering(n_clusters=100, metric='cosine', linkage='average')
+
+        # Fit model directly on normalized embeddings
+        l_cluster_labels = clustering.fit_predict(normalized_l_embeddings)
+        z_cluster_labels = clustering.fit_predict(normalized_z_embeddings)
+        p_cluster_labels = clustering.fit_predict(normalized_p_embeddings)
 
         # calculate confusion matrix
         l_confusion_matrix = confusion_matrix(test_labels, l_cluster_labels)
@@ -87,10 +101,15 @@ def main(device):
         for row, col in zip(rows, cols):
             new_p_cluster_labels[p_cluster_labels == col] = row
 
-        # calculate silhouette score
-        l_silhouette_score = silhouette_score(l_similarity, new_l_cluster_labels, metric='cosine')
-        z_silhouette_score = silhouette_score(z_similarity, new_z_cluster_labels, metric='cosine')
-        p_silhouette_score = silhouette_score(p_similarity, new_p_cluster_labels, metric='cosine')
+        # # calculate silhouette score
+        # l_silhouette_score = silhouette_score(l_similarity, new_l_cluster_labels, metric='cosine')
+        # z_silhouette_score = silhouette_score(z_similarity, new_z_cluster_labels, metric='cosine')
+        # p_silhouette_score = silhouette_score(p_similarity, new_p_cluster_labels, metric='cosine')
+
+        # Calculate silhouette scores directly on normalized embeddings using cosine metric
+        l_silhouette_score = silhouette_score(normalized_l_embeddings, l_cluster_labels, metric='cosine')
+        z_silhouette_score = silhouette_score(normalized_z_embeddings, z_cluster_labels, metric='cosine')
+        p_silhouette_score = silhouette_score(normalized_p_embeddings, p_cluster_labels, metric='cosine')
 
         print(f"l_silhouette_score for {model_name}: {l_silhouette_score}")
         print(f"z_silhouette_score for {model_name}: {z_silhouette_score}")

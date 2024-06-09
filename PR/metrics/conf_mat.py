@@ -24,6 +24,7 @@ def plot_confusion_matrix(conf_mat,
     plt.ylabel('Ground Truth')
     plt.xlabel('Predicted')
     plt.title(title)
+    plt.tight_layout()
     plt.savefig(os.path.join(file_path, 
                              f"{algorithm_name}_confusion_matrix_{category_name}_{model_name}_{layer_name}.png"))
     plt.close()

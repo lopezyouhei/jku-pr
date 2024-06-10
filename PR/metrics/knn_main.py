@@ -48,10 +48,15 @@ def main(n_neighbors, device, categories):
         # load class_to_classid
         class_to_classid = load_yaml(os.path.join(data_path, "in1k_class_to_classid.yaml"))
         # get category names and labels
+        train_category_names, train_category_labels = group_classes(train_labels, synset_categories, class_to_classid)
         category_names, category_labels = group_classes(test_labels, synset_categories, class_to_classid)
-        # remove -1 labels from category_labels and test_features
+        # remove -1 labels from labels and features
+        train_category_labels_tensor = torch.tensor(train_category_labels)
         category_labels_tensor = torch.tensor(category_labels)
+        train_valid_indices = train_category_labels_tensor != -1
         valid_indices = category_labels_tensor != -1
+        train_labels = train_category_labels_tensor[train_valid_indices] # this makes sampling less deterministic as it changes based on the categories
+        train_features = train_features[train_valid_indices] # this makes sampling less deterministic as it changes based on the categories
         test_labels = category_labels_tensor[valid_indices]
         test_features = test_features[valid_indices]
     elif categories is None:
@@ -69,22 +74,25 @@ def main(n_neighbors, device, categories):
         # set model to evaluation mode
         model.eval()
         with torch.inference_mode():
-            l_embeddings = []
-            z_embeddings = []
-            p_embeddings = []
+            l_train_embeddings = []
+            z_train_embeddings = []
+            p_train_embeddings = []
             for x in train_features:
                 x = x.unsqueeze(0).to(device)
                 l, z, p = model(x)
-                l_embeddings.append(l.cpu())
-                z_embeddings.append(z.cpu())
-                p_embeddings.append(p.cpu())
-            l_train_embeddings = torch.cat(l_embeddings, axis=0)
-            z_train_embeddings = torch.cat(z_embeddings, axis=0)
-            p_train_embeddings = torch.cat(p_embeddings, axis=0)
+                l_train_embeddings.append(l.cpu())
+                z_train_embeddings.append(z.cpu())
+                p_train_embeddings.append(p.cpu())
+            l_train_embeddings = torch.cat(l_train_embeddings, axis=0)
+            z_train_embeddings = torch.cat(z_train_embeddings, axis=0)
+            p_train_embeddings = torch.cat(p_train_embeddings, axis=0)
             normalized_l_train_embeddings = normalize(l_train_embeddings.numpy(), norm='l2', axis=1)
             normalized_z_train_embeddings = normalize(z_train_embeddings.numpy(), norm='l2', axis=1)
             normalized_p_train_embeddings = normalize(p_train_embeddings.numpy(), norm='l2', axis=1)
 
+            l_embeddings = []
+            z_embeddings = []
+            p_embeddings = []
             for x in test_features:
                 x = x.unsqueeze(0).to(device)
                 l, z, p = model(x)
@@ -98,14 +106,6 @@ def main(n_neighbors, device, categories):
             normalized_z_embeddings = normalize(z_test_embeddings.numpy(), norm='l2', axis=1)
             normalized_p_embeddings = normalize(p_test_embeddings.numpy(), norm='l2', axis=1)
 
-            train_embeddings = [model(x.unsqueeze(0).to(device))[2].cpu() for x in train_features]
-            train_embeddings = torch.cat(train_embeddings, axis=0)
-            train_x = normalize(train_embeddings.numpy(), norm='l2', axis=1)
-
-            test_embeddings = [model(x.unsqueeze(0).to(device))[2].cpu() for x in test_features]
-            test_embeddings = torch.cat(test_embeddings, axis=0)
-            test_x = normalize(test_embeddings.numpy(), norm='l2', axis=1)
-
         # fit k-NN classifier
         l_knn = KNeighborsClassifier(n_neighbors=n_neighbors, metric='cosine')
         l_knn.fit(normalized_l_train_embeddings, train_labels.numpy())
@@ -117,6 +117,7 @@ def main(n_neighbors, device, categories):
         l_pred = l_knn.predict(normalized_l_embeddings)
         z_pred = z_knn.predict(normalized_z_embeddings)
         p_pred = p_knn.predict(normalized_p_embeddings)
+
         # calculate accuracy
         l_acc = (l_pred == test_labels.numpy()).mean()
         z_acc = (z_pred == test_labels.numpy()).mean()
@@ -126,21 +127,21 @@ def main(n_neighbors, device, categories):
 
         if categories is not None:
             # plot confusion matrix
-            plot_confusion_matrix(confusion_matrix(test_labels, l_pred), 
+            plot_confusion_matrix(confusion_matrix(test_labels.cpu().numpy(), l_pred), 
                                 category_names, 
                                 f"Confusion Matrix for {model_name} using l embeddings",
                                 "knn",
                                 categories,
                                 model_name,
                                 "l",)
-            plot_confusion_matrix(confusion_matrix(test_labels, z_pred),
+            plot_confusion_matrix(confusion_matrix(test_labels.cpu().numpy(), z_pred),
                                 category_names, 
                                 f"Confusion Matrix for {model_name} using z embeddings",
                                 "knn",
                                 categories,
                                 model_name,
                                 "z")
-            plot_confusion_matrix(confusion_matrix(test_labels, p_pred),
+            plot_confusion_matrix(confusion_matrix(test_labels.cpu().numpy(), p_pred),
                                 category_names, 
                                 f"Confusion Matrix for {model_name} using p embeddings",
                                 "knn",

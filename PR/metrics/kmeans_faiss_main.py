@@ -18,7 +18,7 @@ from config.metric_models import models # change imported model dictionary based
 from config.class_group import *
 from NNCLR.model import NNCLRHead
 
-def run_faiss_clustering(data, n_clusters=1000):
+def run_faiss_clustering(data, redo=5, n_clusters=1000):
     # Setting up the index - using the Flat index for cosine similarity
     d = data.shape[1]  # dimension
     index = faiss.IndexFlatIP(d)  # Inner Product (IP) is equivalent to cosine similarity when data is normalized
@@ -27,7 +27,7 @@ def run_faiss_clustering(data, n_clusters=1000):
     kmeans = faiss.Clustering(d, n_clusters)
     kmeans.verbose = True
     kmeans.niter = 25
-    kmeans.nredo = 5 # would be better to increase this number but it takes too long since faiss-gpu cannot be used
+    kmeans.nredo = redo # would be better to increase this number but it takes too long since faiss-gpu cannot be used
     kmeans.min_points_per_centroid = 1
     kmeans.max_points_per_centroid = 100000
 
@@ -55,9 +55,11 @@ def main(device, categories):
     test_features = torch.load(test_features_path)
     test_labels = torch.load(test_labels_path)
     n_clusters = 1000
+    redo = 5
 
     # get synset categories
     if categories in ['main_5_categories', 'dog_15_categories', 'wen_10_categories']:
+        redo = 100
         if categories == 'main_5_categories':
             synset_categories = main_5_categories
             n_clusters = 5
@@ -111,9 +113,9 @@ def main(device, categories):
         normalized_p_embeddings = normalize(p_embeddings.numpy(), norm='l2', axis=1)
 
         # apply FAISS clustering
-        l_cluster_labels = run_faiss_clustering(normalized_l_embeddings, n_clusters)
-        z_cluster_labels = run_faiss_clustering(normalized_z_embeddings, n_clusters)
-        p_cluster_labels = run_faiss_clustering(normalized_p_embeddings, n_clusters)
+        l_cluster_labels = run_faiss_clustering(normalized_l_embeddings, redo, n_clusters)
+        z_cluster_labels = run_faiss_clustering(normalized_z_embeddings, redo, n_clusters)
+        p_cluster_labels = run_faiss_clustering(normalized_p_embeddings, redo, n_clusters)
 
         # align cluster labels using Hungarian algorithm
         l_aligned_labels = hungarian_algorithm(test_labels, l_cluster_labels)
